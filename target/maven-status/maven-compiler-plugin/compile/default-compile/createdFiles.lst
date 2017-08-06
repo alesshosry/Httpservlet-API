@@ -1,0 +1,4 @@
+com\example\appengine\helloworld\HelloServlet.class
+com\example\appengine\helloworld\TestServlet.class
+com\example\appengine\helloworld\GenericResource.class
+com\example\appengine\helloworld\ApplicationConfig.class
