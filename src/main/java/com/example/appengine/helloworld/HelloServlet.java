@@ -42,27 +42,28 @@ public class HelloServlet extends HttpServlet {
 
         try {
 
-            Class.forName("com.mysql.jdbc.Driver");
-           // String url = String.format("jdbc:mysql://35.184.122.50:3306/WorkFlow?useSSL=false&useUnicode=true&characterEncoding=UTF-8");
+            //Class.forName("com.mysql.jdbc.Driver");
+            //...
+            //String url = String.format("jdbc:mysql://35.184.122.50:3306/WorkFlow?useSSL=false&useUnicode=true&characterEncoding=UTF-8");
+            // Connection connection = DriverManager.getConnection(url, "root", "GoldenTeam1");
+           // String url = String.format("jdbc:mysql://35.184.122.50:3306/WorkFlow?user=root&useSSL=false&useUnicode=true&characterEncoding=UTF-8");
+            Class.forName("com.mysql.jdbc.GoogleDriver");
 
-           // Connection connection = DriverManager.getConnection(url, "root", "GoldenTeam1");
-           //Connection connection = DriverManager.getConnection(url, "aless", "Aless159");
-            Connection con = DriverManager.getConnection(
-                    "jdbc:mysql://35.184.122.50:3306/WorkFlow", "root", "GoldenTeam1");
+            String url = String.format("jdbc:google:mysql://myfirstproject-ecd46:myinstance/WorkFlow?user=root&useSSL=false&useUnicode=true&characterEncoding=UTF-8");
+//myfirstproject-ecd46:us-central1:myinstance
+            Connection connection = DriverManager.getConnection(url);
 
-            // try (Statement statement = connection.createStatement()) {
-            try (Statement statement = con.createStatement()) {
-                ResultSet resultSet = statement.executeQuery("select user_name from wf_accounts;");
-                while (resultSet.next()) {
-                    out.println(resultSet.getString(1));
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            out.println("Error ClassNotFoundException:" + ex.toString());
-        } catch (SQLException ex) {
-            out.println("Error sqlException:" + ex.toString());
+            //Where x is your instance IP (get it from the panel), y is the instance name, z is the database (not account) user name (usually "root") and w is the user password (you have to set it. look at Google's tutorials).
+            /*   try (Statement statement = connection.createStatement()) {
+             ResultSet resultSet = statement.executeQuery("select user_name from wf_accounts;");
+             while (resultSet.next()) {
+             out.println(resultSet.getString(1));
+             }
+
+             }*/
         } catch (Exception ex) {
-            out.println("Exception:" + ex.toString());
+            out.println("Error: " + ex.toString());
+
         }
     }
 
