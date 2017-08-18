@@ -16,6 +16,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Properties;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,7 +33,8 @@ public class CreateNewUser extends HttpServlet {
     public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         PrintWriter out = resp.getWriter();
-        //out.println("Dear vistor, you are accessing my first project deployed on cloud. Thank you");
+        Properties prop = new Properties();
+        prop.load(getServletContext().getResourceAsStream("/WEB-INF/config.properties"));
 
         String url = "";                  
                 
@@ -58,36 +60,23 @@ public class CreateNewUser extends HttpServlet {
             if (UserBirthDate == null){
                 throw new Exception("UserBirthDate is null");            
             }
-            
-            /*out.println("UserName: "+UserName);
-             out.println("UserMail: " +UserMail);
-             out.println("UserGender:" + UserGender);
-             out.println("UserBirthDate:" + UserBirthDate);*/
-            
-             
-            // String UserBirthDate="2008-05-04";  
+          
             
            if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production) {
 
-                Class.forName("com.mysql.jdbc.GoogleDriver").newInstance();
-                //url = "jdbc:google:mysql://MyFirstProject-ecd46:myinstance/WorkFlow?user=root";
-                url = "jdbc:google:mysql://workflowcnam:asia-east1:workflow/WorkFlow?user=root&password=GoldenTeam1";
+                Class.forName(prop.getProperty("googleDriverPath")).newInstance();
+                url = prop.getProperty("prodURL");
 
             } else {
-                Class.forName("com.mysql.jdbc.Driver");
-                url = "jdbc:mysql://35.194.177.156:3306/WorkFlow?user=root&password=GoldenTeam1&useSSL=false";
+                Class.forName(prop.getProperty("localDriverPath"));
+                url = prop.getProperty("qcURL");
             }
 
             Connection connection = DriverManager.getConnection(url);
                          
             Statement statement = connection.createStatement();
             int resultSet = statement.executeUpdate("Insert into wf_accounts(user_name,user_mail,user_gender,date_of_birh,creation_ddate)values('" + UserName + "','" + UserMail + "','" + UserGender + "','" + UserBirthDate + "', sysdate());");
-           // int resultSet = statement.executeUpdate("Insert into wf_accounts(user_name,user_mail,user_gender,creation_ddate)values('frou frou','frou@feou.com','U',sysdate());");
-            
-           // int resultSet = statement.executeUpdate("update wf_accounts set date_of_birh = '2008-05-04' Where user_name = 'frou frou';");
- 
-            //while (resultSet.next()) {
-                
+          
             
             JSONObject user = new JSONObject();
             user.put("result", resultSet);

@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Properties;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,23 +27,25 @@ public class GetUsers extends HttpServlet {
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-
+        
+        Properties prop = new Properties();
+        prop.load(getServletContext().getResourceAsStream("/WEB-INF/config.properties"));
+        
         resp.setContentType("application/json");
         PrintWriter out = resp.getWriter();
-        //out.println("Dear vistor, you are accessing my first project deployed on cloud. Thank you");
 
         String url = "";
         try {
 
             if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production) {
 
-                Class.forName("com.mysql.jdbc.GoogleDriver").newInstance();
+                Class.forName(prop.getProperty("googleDriverPath")).newInstance();
                 //url = "jdbc:google:mysql://MyFirstProject-ecd46:myinstance/WorkFlow?user=root";
-                url = "jdbc:google:mysql://workflowcnam:asia-east1:workflow/WorkFlow?user=root&password=GoldenTeam1";
+                url = prop.getProperty("prodURL");
 
             } else {
-                Class.forName("com.mysql.jdbc.Driver");
-                url = "jdbc:mysql://35.194.177.156:3306/WorkFlow?user=root&password=GoldenTeam1";
+                Class.forName(prop.getProperty("localDriverPath"));
+                url = prop.getProperty("qcURL");
             }
 
             Connection connection = DriverManager.getConnection(url);
