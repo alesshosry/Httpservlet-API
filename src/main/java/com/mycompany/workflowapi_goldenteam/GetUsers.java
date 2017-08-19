@@ -29,7 +29,11 @@ public class GetUsers extends HttpServlet {
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Map callbackMap = getQueryMap(req.getQueryString());
+        Map callbackMap = null;
+        if(req.getQueryString() != null){
+            callbackMap = getQueryMap(req.getQueryString());
+        }
+        
         Properties prop = new Properties();
         prop.load(getServletContext().getResourceAsStream("/WEB-INF/config.properties"));
         
@@ -53,7 +57,7 @@ public class GetUsers extends HttpServlet {
             Connection connection = DriverManager.getConnection(url);
 
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("Select user_id,user_name,user_mail,date_of_birh from wf_accounts;");
+            ResultSet resultSet = statement.executeQuery("Select user_id,user_name,user_mail from wf_accounts;");
            
             JSONObject json      = new JSONObject();
             JSONArray  UsersList = new JSONArray();
@@ -66,7 +70,7 @@ public class GetUsers extends HttpServlet {
                 user.put("UserID" , resultSet.getString(1));
                 user.put("UserName" , resultSet.getString(2));
                 user.put("UserMail" , resultSet.getString(3));
-                user.put("UserDateOfBirth" , resultSet.getString(4));
+                //user.put("UserDateOfBirth" , resultSet.getString(4));
                 
                 UsersList.put(user);
                 
@@ -75,8 +79,10 @@ public class GetUsers extends HttpServlet {
             }
             
           json.put("jsonArray",UsersList);
-            
-          out.write((String)callbackMap.get("callback") + "(" + json.toString() + ")");
+          if(callbackMap != null)
+            out.write((String)callbackMap.get("callback") + "(" + json.toString() + ")");
+          else
+            out.write(json.toString());
           out.close();
         } catch (Exception ex) {
            resp.sendError(400, ex.toString());
