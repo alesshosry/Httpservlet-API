@@ -15,7 +15,10 @@
         <servlet-name>AddUser</servlet-name>
         <servlet-class>com.mycompany.workflowapi_goldenteam.CreateNewUser</servlet-class>
     </servlet> 
-       
+    <servlet>
+        <servlet-name>UpsertWorkflow</servlet-name>
+        <servlet-class>com.mycompany.workflowapi_goldenteam.UpsertWorkflow</servlet-class>
+    </servlet>
              
     <servlet-mapping>
         <servlet-name>GetUsers</servlet-name>
@@ -34,5 +37,8 @@
     
     
     <display-name>WorkflowAPI_GoldenTeam</display-name>
-    
+    <servlet-mapping>
+        <servlet-name>UpsertWorkflow</servlet-name>
+        <url-pattern>/UpsertWorkflow</url-pattern>
+    </servlet-mapping>
 </web-app>
