@@ -6,6 +6,7 @@
 package com.mycompany.workflowapi_goldenteam;
 
 import com.google.api.client.util.DateTime;
+import com.google.api.server.spi.Strings;
 import com.google.appengine.api.utils.SystemProperty;
 import com.google.appengine.repackaged.com.google.gson.JsonObject;
 import com.google.appengine.repackaged.com.google.protobuf.Int32Value;
@@ -26,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-
+import java.util.Date;
 /**
  *
  * @author User
@@ -75,21 +76,51 @@ public class UpsertWorkflow extends HttpServlet {
         for (int i = 0; i <= jArray.length() - 1; i++) {
             JSONObject jObject = jArray.getJSONObject(i);
             out.write(jObject.optString("taskId"));
-            /*insertWorkflowTasks(response,
-                        jObject.optString("taskId"),
-                        jObject.optString("startDate"),
-                        jObject.optString("falseRedirect"),
-                        jObject.optString("trueRedirect"),
-                        jObject.optString("title"),
-                        jObject.optString("email"),
-                        jObject.optString("description"),
-                        jObject.optString("tag"),
-                        jObject.optString("taskGraphIndex"),
-                        jObject.optString("trueRedirect"),
-                        jObject.optString("endDate"),
-                        jObject.optString("type"));*/
+            insertWorkflowTasks(response,
+                jObject.optString("taskId"),
+                Strings.isEmptyOrWhitespace(jObject.optString("startDate")) ? "":jObject.optString("startDate"),
+                jObject.optString("falseRedirect"),
+                jObject.optString("trueRedirect"),
+                jObject.optString("title"),
+                jObject.optString("email"),
+                jObject.optString("description"),
+                jObject.optString("tag"),
+                jObject.optString("taskGraphIndex"),
+                jObject.optString("trueRedirect"),
+                Strings.isEmptyOrWhitespace(jObject.optString("endDate")) ? "":jObject.optString("endDate"),
+                jObject.optString("type"));
+            
+            
+            
+                        out.write("\n");
+                        out.write("taskId : "+jObject.optString("taskId"));
+                        out.write("\n");
+                        out.write("startDate : "+jObject.optString("startDate"));
+                        out.write("isnull startDate : "+Strings.isEmptyOrWhitespace(jObject.optString("startDate")) );
+                        out.write("\n");
+                        out.write("falseRedirect : "+jObject.optString("falseRedirect"));
+                        out.write("\n");
+                        out.write("trueRedirect : "+jObject.optString("trueRedirect"));
+                        out.write("\n");
+                        out.write("title : "+jObject.optString("title"));
+                        out.write("\n");
+                        out.write("email : "+jObject.optString("email"));
+                        out.write("\n");
+                        out.write("description : "+jObject.optString("description"));
+                        out.write("\n");
+                        out.write("tag : "+jObject.optString("tag"));
+                        out.write("\n");
+                        out.write("taskGraphIndex : "+jObject.optString("taskGraphIndex"));
+                        out.write("\n");
+                        out.write("trueRedirect : "+jObject.optString("trueRedirect"));
+                        out.write("\n");
+                        out.write("endDate : "+jObject.optString("endDate"));
+                        out.write("isnull endDate : "+Strings.isEmptyOrWhitespace(jObject.optString("endDate")) );
+                        out.write("\n");
+                        out.write("type : "+jObject.optString("type"));
                     
             strJSON += jObject.toString();
+           //break;
         }
 
         JSONObject result = new JSONObject();
@@ -98,7 +129,6 @@ public class UpsertWorkflow extends HttpServlet {
         String url = "";
         try {
 
-//            
             out.close();
         } catch (Exception ex) {
             response.sendError(400, ex.toString());
@@ -283,8 +313,8 @@ public class UpsertWorkflow extends HttpServlet {
             Connection connection = DriverManager.getConnection(url);
 
             Statement statement = connection.createStatement();
-            startDate=startDate.isEmpty()?(new Date()).toString():startDate;
-            endDate=endDate.isEmpty()?(new Date()).toString():endDate;
+            //startDate=startDate.isEmpty()?(new Date()).toString():startDate;
+            //endDate=endDate.isEmpty()?(new Date()).toString():endDate;
             String sqlQuery = "Insert into wf_workflow_details (wf_id,"
                     + "wf_desc,"
                     + "wf_emails,"
@@ -300,16 +330,19 @@ public class UpsertWorkflow extends HttpServlet {
             sqlQuery += "VALUES ('" + wfId + "',"
                     + "'Desc of " + wfId + "',"
                     + "'" + emails + "',"
-                    + "" + startDate + ","
-                    + "" + endDate + ","
+                    + "'" + startDate + "',"
+                    + "'" + endDate + "',"
                     + "'" + falseRed + "',"
                     + "'" + trueRed + "',"
                     + "'" + tag + "',"
                     + "'" + graphIndex + "',"
-                    + "" + taskId + ","
+                    + "'" + taskId + "',"
                     + "'" + title + "',"
                     + "'" + tskType + "')";
             statement.execute(sqlQuery);
+            statement.close();
+            out.close();
+            connection.close();
 
         } catch (Exception ex) {
 
