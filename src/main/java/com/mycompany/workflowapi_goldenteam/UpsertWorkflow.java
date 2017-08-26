@@ -324,7 +324,7 @@ public class UpsertWorkflow extends HttpServlet {
                     + "wf_t_redirect,"
                     + "wf_tag,"
                     + "wf_taskgraphindex,"
-                    + "wf_task_id,"
+                    //+ "wf_task_id,"
                     + "wf_title,"
                     + "wf_type)";
             sqlQuery += "VALUES ('" + wfId + "',"
@@ -336,7 +336,7 @@ public class UpsertWorkflow extends HttpServlet {
                     + "'" + trueRed + "',"
                     + "'" + tag + "',"
                     + "'" + graphIndex + "',"
-                    + "'" + taskId + "',"
+                    //+ "'" + taskId + "',"
                     + "'" + title + "',"
                     + "'" + tskType + "')";
             statement.execute(sqlQuery);
