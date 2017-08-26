@@ -32,7 +32,7 @@ public class loadWorkflow extends HttpServlet {
         
         PrintWriter out = response.getWriter();
         JSONObject jsonObj = new JSONObject();
-        
+        response=updateResponseHeader(response);
         String UserName = request.getParameter("userName");
         String WorkflowId = request.getParameter("workflowId");
         
@@ -139,5 +139,14 @@ public class loadWorkflow extends HttpServlet {
             return(ex.toString());
         }
         
+    }
+    private HttpServletResponse updateResponseHeader(HttpServletResponse response) {
+
+        response.setContentType("application/json");
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, HEAD");
+        response.addHeader("Access-Control-Allow-Headers", "X-PINGOTHER, Origin, X-Requested-With, Content-Type, Accept");
+        response.addHeader("Access-Control-Max-Age", "1728000");
+        return response;
     }
 }
