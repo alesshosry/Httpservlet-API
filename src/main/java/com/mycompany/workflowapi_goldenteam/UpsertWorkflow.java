@@ -76,7 +76,7 @@ public class UpsertWorkflow extends HttpServlet {
             JSONObject jObject = jArray.getJSONObject(i);
             out.write(jObject.optString("title"));
             insertWorkflowTasks(response,
-                jObject.optString("taskId"),
+                workFlowIdInt,
                 Strings.isEmptyOrWhitespace(jObject.optString("startDate")) ? "":jObject.optString("startDate"),
                 jObject.optString("falseRedirect"),
                 jObject.optString("trueRedirect"),
@@ -313,6 +313,7 @@ public class UpsertWorkflow extends HttpServlet {
                     + "'" + tskType + "')";
             statement.execute(sqlQuery);
             statement.close();
+            out.print(sqlQuery);
             out.close();
             connection.close();
 

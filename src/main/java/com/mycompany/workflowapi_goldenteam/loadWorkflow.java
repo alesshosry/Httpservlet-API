@@ -29,36 +29,39 @@ public class loadWorkflow extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         PrintWriter out = response.getWriter();
         JSONObject jsonObj = new JSONObject();
-        response=updateResponseHeader(response);
+        response = updateResponseHeader(response);
         String UserName = request.getParameter("userName");
         String WorkflowId = request.getParameter("workflowId");
-        
+
         //GET USER ID BY USERNAME
-        if(UserName != "" && UserName != null){
+        if (UserName != "" && UserName != null) {
             String userId = getUserIdByUserName(UserName);
-            if(userId != "" && userId != null && WorkflowId != "" && WorkflowId != null){
+            if (userId != "" && userId != null && WorkflowId != "" && WorkflowId != null) {
                 //GET TASKS BY WORKFLOW ID AND USER ID
                 //CREATE JSON OBJECT AND SEND IT TO RESPONSE
-                out.write(getTasksByWorkflowIdAndUserId(userId, WorkflowId));
-            }else{
+                String tasks=getTasksByWorkflowIdAndUserId(userId, WorkflowId);
+                
+                out.print(tasks.toString());
+                
+
+            } else {
                 jsonObj.put("workflowObj", "");
                 out.write(jsonObj.toString());
             }
-        }else{
+        } else {
             jsonObj.put("workflowObj", "");
             out.write(jsonObj.toString());
         }
-         
-        
+
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
     }
 
     private String getUserIdByUserName(String userName) throws IOException {
@@ -92,12 +95,12 @@ public class loadWorkflow extends HttpServlet {
         }
         return "";
     }
-    
-    private String getTasksByWorkflowIdAndUserId(String userId, String workflowId)throws IOException {
+
+    private String getTasksByWorkflowIdAndUserId(String userId, String workflowId) throws IOException {
         try {
             JSONObject tasksObj = new JSONObject();
             JSONArray taskArray = new JSONArray();
-            
+
             Properties prop = new Properties();
             prop.load(getServletContext().getResourceAsStream("/WEB-INF/config.properties"));
 
@@ -114,7 +117,12 @@ public class loadWorkflow extends HttpServlet {
             Connection connection = DriverManager.getConnection(url);
 
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select wf_workflow_details.* from wf_workflow_master, wf_workflow_details where wf_workflow_master.wf_id = " + workflowId + " and wf_workflow_master.user_id = " + userId + " and wf_workflow_details.wf_id = wf_workflow_master.wf_id");
+            ResultSet resultSet = statement.executeQuery("select wf_workflow_details.* "
+                    + "from wf_workflow_master, "
+                    + "wf_workflow_details "
+                    + "where wf_workflow_master.wf_id = " + workflowId
+                    + " and wf_workflow_master.user_id = " + userId
+                    + " and wf_workflow_details.wf_id = wf_workflow_master.wf_id");
 
             while (resultSet.next()) {
                 JSONObject taskDetails = new JSONObject();
@@ -129,17 +137,18 @@ public class loadWorkflow extends HttpServlet {
                 taskDetails.put("taskId", resultSet.getString("wf_task_id"));
                 taskDetails.put("title", resultSet.getString("wf_title"));
                 taskDetails.put("type", resultSet.getString("wf_type"));
-                
+
                 taskArray.put(taskDetails);
             }
-            tasksObj.put("workflowObj", taskArray.toString());
-            return tasksObj.toString();
+            //tasksObj.put("workflowObj", taskArray.toString());
+            return taskArray.toString();
 
         } catch (Exception ex) {
-            return(ex.toString());
+            return (ex.toString());
         }
-        
+
     }
+
     private HttpServletResponse updateResponseHeader(HttpServletResponse response) {
 
         response.setContentType("application/json");
