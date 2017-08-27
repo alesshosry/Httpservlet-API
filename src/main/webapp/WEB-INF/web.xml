@@ -24,6 +24,10 @@
         <servlet-name>loadWorkflow</servlet-name>
         <servlet-class>com.mycompany.workflowapi_goldenteam.loadWorkflow</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>getAllTasks</servlet-name>
+        <servlet-class>com.mycompany.workflowapi_goldenteam.getAllTasks</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>GetUsers</servlet-name>
         <url-pattern>/GetUsers</url-pattern>
@@ -48,5 +52,9 @@
     <servlet-mapping>
         <servlet-name>loadWorkflow</servlet-name>
         <url-pattern>/loadWorkflow</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>getAllTasks</servlet-name>
+        <url-pattern>/getAllTasks</url-pattern>
     </servlet-mapping>
 </web-app>
