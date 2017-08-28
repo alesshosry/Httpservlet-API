@@ -60,7 +60,7 @@ public class GetWorkflowsByUsers extends HttpServlet {
 
             Connection connection = DriverManager.getConnection(url);
            Statement statement = connection.createStatement();
-           ResultSet resultSet = statement.executeQuery("Select wf_id,wf_desc "
+           ResultSet resultSet = statement.executeQuery("Select wf_id,wf_desc"
                    + "from wf_workflow_master "
                    + "inner join wf_accounts on "
                    + "wf_accounts.User_id=wf_workflow_master.user_id "

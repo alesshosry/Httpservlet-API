@@ -28,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import java.util.Date;
+
 /**
  *
  * @author User
@@ -43,74 +44,14 @@ public class UpsertWorkflow extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        PrintWriter out = response.getWriter();
-
-        String strJSON = request.getParameter("workflowObj");
-        String workFlowId = request.getParameter("workFlowId");
-        String UserName = request.getParameter("userName");
-        String workflowDesc = request.getParameter("workFlowDesc");
-
-        String workFlowIdInt = workFlowId;
-
-        //Add Access-Control-Allow to response Header
-        response = updateResponseHeader(response);
-
-        //Get User Id
-        String userId = getUserIdByUserName(UserName, response);
-
-        //Delete existing task for current workflow
-        deleteWorkFlowTasksById(workFlowIdInt, response);
-
-        //Insert current workflow in case of new one
-        if(workFlowIdInt.trim().equals("-1")){
-           workFlowIdInt= insertWorkflowForCurrentUser(workFlowIdInt,userId,workflowDesc, response);
-        }
-
-        
-        //Loop and insert current tasks into current workflow
-        JSONArray jArray = (JSONArray) new JSONTokener(strJSON).nextValue();
-        out.write("array length " + jArray.length());
-        
-        for (int i = 0; i <= jArray.length() - 1; i++) {
-            JSONObject jObject = jArray.getJSONObject(i);
-            out.write(jObject.optString("title"));
-            insertWorkflowTasks(response,
-                workFlowIdInt,
-                Strings.isEmptyOrWhitespace(jObject.optString("startDate")) ? "":jObject.optString("startDate"),
-                jObject.optString("falseRedirect"),
-                jObject.optString("trueRedirect"),
-                jObject.optString("title"),
-                jObject.optString("email"),
-                jObject.optString("description"),
-                jObject.optString("tag"),
-                jObject.optString("taskGraphIndex"),
-                jObject.optString("trueRedirect"),
-                Strings.isEmptyOrWhitespace(jObject.optString("endDate")) ? "":jObject.optString("endDate"),
-                jObject.optString("type"));
-                  
-            strJSON += jObject.toString();
-           //break;
-        }
-
-        JSONObject result = new JSONObject();
-        result.put("result", strJSON);
-        getAllTasks(response);
-        String url = "";
         try {
-            out.close();
-        } catch (Exception ex) {
-            response.sendError(400, ex.toString());
-        }
-    }
+            PrintWriter out = response.getWriter();
 
-    private void getAllTasks(HttpServletResponse resp){
-        try{
-        Properties prop = new Properties();
+            Properties prop = new Properties();
             prop.load(getServletContext().getResourceAsStream("/WEB-INF/config.properties"));
 
-            resp.setContentType("application/javascript;charset=utf-8");
-            PrintWriter out = resp.getWriter();
+            response.setContentType("application/javascript;charset=utf-8");
+         
 
             String url = "";
             if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production) {
@@ -125,21 +66,66 @@ public class UpsertWorkflow extends HttpServlet {
             Connection connection = DriverManager.getConnection(url);
 
             Statement statement = connection.createStatement();
-            ResultSet resultSet  = statement.executeQuery("select * from wf_workflow_details");
-             if (resultSet.next()) {
-                    out.print("has next");
-                }else{
-                    out.print("no next");
-             }
-            
-        }catch(Exception ex){
-            
+
+            String strJSON = request.getParameter("workflowObj");
+            String workFlowId = request.getParameter("workFlowId");
+            String UserName = request.getParameter("userName");
+            String workflowDesc = request.getParameter("workFlowDesc");
+
+            String workFlowIdInt = workFlowId;
+
+            //Add Access-Control-Allow to response Header
+            response = updateResponseHeader(response);
+
+            //Get User Id
+            String userId = getUserIdByUserName(UserName, response);
+
+            //Delete existing task for current workflow
+            deleteWorkFlowTasksById(workFlowIdInt, response,statement);
+
+            //Insert current workflow in case of new one
+            if (workFlowIdInt.trim().contains("-") || workFlowIdInt.trim().equals("-1")) {
+                workFlowIdInt = insertWorkflowForCurrentUser(workFlowIdInt,
+                        userId,
+                        workflowDesc,
+                        response,
+                        statement);
+            }
+
+            //Loop and insert current tasks into current workflow
+            JSONArray jArray = (JSONArray) new JSONTokener(strJSON).nextValue();
+            out.write(workFlowIdInt);
+            for (int i = 0; i <= jArray.length() - 1; i++) {
+                JSONObject jObject = jArray.getJSONObject(i);
+                
+                insertWorkflowTasks(response,
+                        workFlowIdInt,
+                        Strings.isEmptyOrWhitespace(jObject.optString("startDate")) ? "" : jObject.optString("startDate"),
+                        jObject.optString("falseRedirect"),
+                        jObject.optString("trueRedirect"),
+                        jObject.optString("title"),
+                        jObject.optString("email"),
+                        jObject.optString("description"),
+                        jObject.optString("tag"),
+                        jObject.optString("taskGraphIndex"),
+                        jObject.optString("trueRedirect"),
+                        Strings.isEmptyOrWhitespace(jObject.optString("endDate")) ? "" : jObject.optString("endDate"),
+                        jObject.optString("type"),
+                        statement,
+                        out);
+
+                //break;
+            }
+
+            //getAllTasks(response);
+
+        } catch (Exception ex) {
+            response.sendError(400, ex.toString());
         }
     }
-    
-    private void deleteWorkFlowTasksById(String workflowID, HttpServletResponse resp) throws IOException {
-        try {
 
+    private void getAllTasks(HttpServletResponse resp) {
+        try {
             Properties prop = new Properties();
             prop.load(getServletContext().getResourceAsStream("/WEB-INF/config.properties"));
 
@@ -156,12 +142,26 @@ public class UpsertWorkflow extends HttpServlet {
                 Class.forName(prop.getProperty("localDriverPath"));
                 url = prop.getProperty("qcURL");
             }
-
             Connection connection = DriverManager.getConnection(url);
 
             Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select * from wf_workflow_details");
+            if (resultSet.next()) {
+                out.print("has next");
+            } else {
+                out.print("no next");
+            }
+
+        } catch (Exception ex) {
+
+        }
+    }
+
+    private void deleteWorkFlowTasksById(String workflowID, HttpServletResponse resp, Statement statement) throws IOException {
+        try {
+
             int resultSet = statement.executeUpdate("Delete from wf_workflow_details where wf_id='" + workflowID + "'");
-            
+
         } catch (Exception ex) {
             resp.sendError(400, ex.toString());
         }
@@ -203,39 +203,23 @@ public class UpsertWorkflow extends HttpServlet {
         return "";
     }
 
-    private String insertWorkflowForCurrentUser(String workflowId, String userId,String workflowDesc, HttpServletResponse resp) throws IOException {
+    private String insertWorkflowForCurrentUser(String workflowId,
+            String userId,
+            String workflowDesc,
+            HttpServletResponse resp,
+            Statement statement) throws IOException {
         try {
-            Properties prop = new Properties();
-            prop.load(getServletContext().getResourceAsStream("/WEB-INF/config.properties"));
-
-            resp.setContentType("application/javascript;charset=utf-8");
-            PrintWriter out = resp.getWriter();
-
-            String url = "";
-            if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production) {
-
-                Class.forName(prop.getProperty("googleDriverPath")).newInstance();
-                url = prop.getProperty("prodURL");
-
-            } else {
-                Class.forName(prop.getProperty("localDriverPath"));
-                url = prop.getProperty("qcURL");
-            }
-            Connection connection = DriverManager.getConnection(url);
-
-            Statement statement = connection.createStatement();
 
             //String sqlQuery = "IF NOT EXISTS (SELECT 1 FROM wf_workflow_master WHERE user_id='" + userId + "') BEGIN ";
-            
-            if (workflowId.equals("-1")) {
-                
+            if (workflowId.contains("-") || workflowId.equals("-1")) {
+
                 String sqlQuery = "INSERT INTO wf_workflow_master "
                         + "(user_id,wf_desc,start_date,end_date,creation_date) ";
-                sqlQuery += "VALUES (" + userId + ",'"+workflowDesc+"',sysdate(),sysdate(),sysdate())";
-                
+                sqlQuery += "VALUES (" + userId + ",'" + workflowDesc + "',sysdate(),sysdate(),sysdate())";
+
                 statement.execute(sqlQuery);
                 sqlQuery = "SELECT MAX(wf_id) FROM wf_workflow_master WHERE user_id='" + userId + "'";
-                ResultSet resultSet  = statement.executeQuery(sqlQuery);
+                ResultSet resultSet = statement.executeQuery(sqlQuery);
                 while (resultSet.next()) {
                     return resultSet.getString(1);
                 }
@@ -261,30 +245,11 @@ public class UpsertWorkflow extends HttpServlet {
             String graphIndex,
             String trueRed,
             String endDate,
-            String tskType) throws IOException {
-          PrintWriter out = resp.getWriter();
+            String tskType, Statement statement, PrintWriter out) throws IOException {
+        //PrintWriter out = resp.getWriter();
         try {
-            Properties prop = new Properties();
-            prop.load(getServletContext().getResourceAsStream("/WEB-INF/config.properties"));
-
-            resp.setContentType("application/javascript;charset=utf-8");
-            //PrintWriter out = resp.getWriter();
-
-            String url = "";
-            if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production) {
-
-                Class.forName(prop.getProperty("googleDriverPath")).newInstance();
-                url = prop.getProperty("prodURL");
-
-            } else {
-                Class.forName(prop.getProperty("localDriverPath"));
-                url = prop.getProperty("qcURL");
-            }
-            Connection connection = DriverManager.getConnection(url);
-
-            Statement statement = connection.createStatement();
-            //startDate=startDate.isEmpty()?(new Date()).toString():startDate;
-            //endDate=endDate.isEmpty()?(new Date()).toString():endDate;
+           
+           
             String sqlQuery = "Insert into wf_workflow_details (wf_id,"
                     + "wf_desc,"
                     + "wf_emails,"
@@ -300,10 +265,10 @@ public class UpsertWorkflow extends HttpServlet {
             sqlQuery += "VALUES ('" + wfId + "',"
                     + "'Desc of " + wfId + "',"
                     + "'" + emails + "',"
-                    //+ "'" + startDate + "',"
-                    //+ "'" + endDate + "',"
-                    + "sysdate(),"
-                    + "sysdate(),"
+                    + "'" + startDate + "',"
+                    + "'" + endDate + "',"
+                    //+ "sysdate(),"
+                    //+ "sysdate(),"
                     + "'" + falseRed + "',"
                     + "'" + trueRed + "',"
                     + "'" + tag + "',"
@@ -311,20 +276,21 @@ public class UpsertWorkflow extends HttpServlet {
                     //+ "'" + taskId + "',"
                     + "'" + title + "',"
                     + "'" + tskType + "')";
-            statement.execute(sqlQuery);
-            statement.close();
-            out.print(sqlQuery);
-            out.close();
-            connection.close();
+            int inserted =statement.executeUpdate(sqlQuery);
+            
+
+//            while (resultSet.next()) {
+//                out.write(resultSet.getString(1));
+//            }
+           
 
         } catch (Exception ex) {
-            out.print("error"+ ex.toString());
+            out.print("error" + ex.toString());
             resp.sendError(400, ex.toString());
         }
 
     }
 
-    
     private HttpServletResponse updateResponseHeader(HttpServletResponse response) {
 
         response.setContentType("application/json");
@@ -334,5 +300,5 @@ public class UpsertWorkflow extends HttpServlet {
         response.addHeader("Access-Control-Max-Age", "1728000");
         return response;
     }
-    
+
 }

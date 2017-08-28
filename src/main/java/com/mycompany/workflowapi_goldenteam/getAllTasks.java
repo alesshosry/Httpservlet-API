@@ -48,7 +48,8 @@ public class getAllTasks extends HttpServlet {
             Connection connection = DriverManager.getConnection(url);
 
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select * from wf_workflow_details");
+            //ResultSet resultSet = statement.executeQuery("select * from wf_workflow_details");
+            ResultSet resultSet = statement.executeQuery("select * from wf_workflow_master");
             while (resultSet.next()) {
                 for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
                     if (i > 1) {
